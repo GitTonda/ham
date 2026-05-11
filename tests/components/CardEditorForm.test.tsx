@@ -12,21 +12,28 @@ jest.mock('@/store/useAppStore', () => ({
   }),
 }));
 
+// Mock global fetch
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    json: () => Promise.resolve({ sensors: [] }),
+  })
+) as jest.Mock;
+
 describe('CardEditorForm', () => {
   it('renders all form fields', () => {
     render(<CardEditorForm />);
     
-    expect(screen.getByLabelText(/Display Name/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Select Sensor/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Display Identifier/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/InfluxDB Data Point/i)).toBeInTheDocument();
     expect(screen.getByText(/Visualization/i)).toBeInTheDocument();
-    expect(screen.getByText(/Range/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Rate \(s\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Time Window/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Poling Rate \(s\)/i)).toBeInTheDocument();
   });
 
   it('shows validation error when title is too short', async () => {
     render(<CardEditorForm />);
     
-    const submitButton = screen.getByRole('button', { name: /Create Monitor/i });
+    const submitButton = screen.getByRole('button', { name: /Initialize Monitor/i });
     fireEvent.click(submitButton);
 
     expect(await screen.findByText(/Title must be at least 2 characters/i)).toBeInTheDocument();
