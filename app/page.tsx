@@ -30,12 +30,16 @@ export default function Home() {
     }
   }, [chatHistory]);
 
+  const generateId = () => typeof crypto.randomUUID === 'function' 
+    ? crypto.randomUUID() 
+    : Math.random().toString(36).substring(2, 11);
+
   const handleSearch = async (query: string) => {
     if (!query) return;
     
     // Add user message
     addChatMessage({
-      id: crypto.randomUUID(),
+      id: generateId(),
       role: 'user',
       content: query,
       timestamp: new Date().toISOString(),
@@ -61,7 +65,7 @@ export default function Home() {
 
       // Add assistant message
       addChatMessage({
-        id: crypto.randomUUID(),
+        id: generateId(),
         role: 'assistant',
         content: data.insightText,
         timestamp: new Date().toISOString(),
