@@ -11,7 +11,9 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const bucket = searchParams.get('bucket') || env.influx.bucket;
     const metric = searchParams.get('metric');
-    const range = searchParams.get('range') || '-1h';
+    let range = searchParams.get('range') || '-1h';
+
+    if (range === 'custom') range = '-1h'; // Fallback for safety
 
     if (!metric) {
       return NextResponse.json({ error: 'Metric name is required' }, { status: 400 });

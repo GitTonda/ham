@@ -12,13 +12,20 @@ import {
   AreaChart, 
   Area 
 } from 'recharts';
-import { MoreHorizontal, RefreshCw, AlertCircle } from 'lucide-react';
+import { MoreHorizontal, RefreshCw, AlertCircle, Edit3, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DashboardCard, DataSignature } from '@/types';
 import { summarizeData } from '@/lib/data-summarizer';
 import { Badge } from '@/components/ui/badge';
 import { useAppStore } from '@/store/useAppStore';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { CardEditorForm } from '@/components/forms/CardEditorForm';
 
 interface ChartCardProps {
   card: DashboardCard;
@@ -33,6 +40,8 @@ export const ChartCard = ({ card }: ChartCardProps) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const setDrilldown = useAppStore((state) => state.setDrilldown);
+  const removeCard = useAppStore((state) => state.removeCard);
+  const [isEditing, setIsEditing] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -64,7 +73,7 @@ export const ChartCard = ({ card }: ChartCardProps) => {
     fetchData();
     const interval = setInterval(fetchData, card.refreshInterval * 1000);
     return () => clearInterval(interval);
-  }, [card.id, card.timeRange, card.refreshInterval]);
+  }, [card.id, card.timeRange, card.refreshInterval, card.fluxQuery]);
 
   const signature = useMemo(() => summarizeData(data, card.metricName), [data, card.metricName]);
 
@@ -81,7 +90,8 @@ export const ChartCard = ({ card }: ChartCardProps) => {
       return (
         <div className="flex flex-col items-center justify-center h-48 text-zinc-600">
           <AlertCircle className="size-8 text-red-500/50 mb-2" />
-          <p className="text-xs uppercase tracking-wider">Connection Lost</p>
+          <p className="text-xs uppercase tracking-wider text-red-500/50 font-bold">Connection Lost</p>
+          <p className="text-[10px] text-zinc-700 mt-1 max-w-[150px] text-center">{error}</p>
         </div>
       );
     }
@@ -102,7 +112,7 @@ export const ChartCard = ({ card }: ChartCardProps) => {
     }
 
     return (
-      <div className="h-48 w-full mt-4">
+      <div className="h-48 min-h-[192px] w-full mt-4 flex items-center justify-center">
         <ResponsiveContainer width="100%" height="100%">
           {card.chartType === 'step' ? (
             <AreaChart data={data}>
@@ -152,44 +162,73 @@ export const ChartCard = ({ card }: ChartCardProps) => {
   };
 
   return (
-    <Card 
-      className="border border-zinc-800 bg-zinc-900/50 hover:border-zinc-700 transition-colors group cursor-pointer"
-      onClick={() => setDrilldown({
-        title: card.title,
-        metricName: card.metricName,
-        data: data,
-        signature: signature
-      })}
-    >
-      <CardHeader className="p-4 flex flex-row items-center justify-between space-y-0">
-        <div>
-          <CardTitle className="text-sm font-medium text-zinc-400 group-hover:text-zinc-200 transition-colors">
-            {card.title}
-          </CardTitle>
-          <p className="text-[10px] uppercase tracking-widest text-zinc-600 mt-1">
-            {card.host} • {card.metricName}
-          </p>
-        </div>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="size-8 text-zinc-600 hover:text-zinc-300"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <MoreHorizontal className="size-4" />
-        </Button>
-      </CardHeader>
-      <CardContent className="p-4 pt-0">
-        {renderChart()}
-        <div className="flex items-center justify-between mt-4">
-          <div className="text-xs text-zinc-500">
-            AVG: <span className="text-zinc-300 font-mono">{signature.avg}</span>
+    <>
+      <Card 
+        className={`border border-zinc-800 bg-zinc-900/50 hover:border-zinc-700 transition-all group cursor-pointer h-full flex flex-col`}
+        onClick={() => setDrilldown({
+          title: card.title,
+          metricName: card.metricName,
+          data: data,
+          signature: signature
+        })}
+      >
+        <CardHeader className="p-4 flex flex-row items-center justify-between space-y-0 shrink-0">
+          <div className="overflow-hidden">
+            <CardTitle className="text-sm font-medium text-zinc-400 group-hover:text-zinc-200 transition-colors truncate">
+              {card.title}
+            </CardTitle>
+            <p className="text-[10px] uppercase tracking-widest text-zinc-600 mt-1 truncate">
+              {card.host} • {card.metricName}
+            </p>
           </div>
-          <div className="text-xs text-zinc-500">
-            RANGE: <span className="text-zinc-300 font-mono">{card.timeRange}</span>
+          <div className="flex gap-1 shrink-0">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="size-7 text-zinc-600 hover:text-blue-400"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditing(true);
+              }}
+            >
+              <Edit3 className="size-3" />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="size-7 text-zinc-600 hover:text-red-400"
+              onClick={(e) => {
+                e.stopPropagation();
+                removeCard(card.id);
+              }}
+            >
+              <Trash2 className="size-3" />
+            </Button>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardHeader>
+        <CardContent className="p-4 pt-0 flex-1 flex flex-col justify-between">
+          {renderChart()}
+          <div className="flex items-center justify-between mt-4 shrink-0">
+            <div className="text-[10px] text-zinc-500 uppercase tracking-tighter">
+              AVG: <span className="text-zinc-300 font-mono">{signature.avg}</span>
+            </div>
+            <div className="text-[10px] text-zinc-500 uppercase tracking-tighter">
+              RANGE: <span className="text-zinc-300 font-mono">{card.timeRange}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog open={isEditing} onOpenChange={setIsEditing}>
+        <DialogContent className="bg-zinc-950 border-zinc-800 sm:max-w-xl">
+           <DialogHeader>
+             <DialogTitle>Edit Monitor Card</DialogTitle>
+           </DialogHeader>
+           <div className="mt-4">
+             <CardEditorForm card={card} onComplete={() => setIsEditing(false)} />
+           </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

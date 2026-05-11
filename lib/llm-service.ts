@@ -58,6 +58,10 @@ export class LLMService {
         suggestedChartType: (parsedResponse.suggestedChartType as ChartType) || 'line',
         fluxQuery: parsedResponse.fluxQuery,
         data: [],
+        usage: response.usage ? {
+          input_tokens: response.usage.input_tokens,
+          output_tokens: response.usage.output_tokens,
+        } : undefined,
       };
     } catch (error) {
       console.error('LLM Parsing Error:', error);

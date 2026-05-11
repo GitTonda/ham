@@ -44,6 +44,8 @@ export async function POST(req: NextRequest) {
       suggestedChartType: llmInsight.suggestedChartType,
       data: rawData,
       signature,
+      fluxQuery: llmInsight.fluxQuery, // Ensure fluxQuery is returned
+      usage: llmInsight.usage, // Pass through usage from service
     });
   } catch (error) {
     console.error('Chat API Error:', error);

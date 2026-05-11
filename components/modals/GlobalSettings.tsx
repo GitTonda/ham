@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Settings, Palette, Database, Brain, Layout, Activity } from 'lucide-react';
+import { Settings, Palette, Database, Brain, Layout, Activity, Coins } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
@@ -40,38 +40,44 @@ export const GlobalSettings = () => {
           </SheetDescription>
         </SheetHeader>
 
-        <Tabs defaultValue="diagnostics" className="flex-1 flex flex-col h-full">
-          <div className="px-6 py-2 bg-zinc-900/50 border-b border-zinc-800">
-            <TabsList className="bg-transparent gap-2 h-auto p-0">
+        <Tabs defaultValue="diagnostics" className="flex-1 flex flex-col h-full overflow-hidden">
+          <div className="px-6 py-2 bg-zinc-900/50 border-b border-zinc-800 overflow-x-auto">
+            <TabsList className="bg-transparent gap-2 h-auto p-0 flex-nowrap">
               <TabsTrigger
                 value="appearance"
-                className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 text-zinc-500 px-3 py-1.5 text-xs uppercase tracking-wider"
+                className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 text-zinc-500 px-3 py-1.5 text-xs uppercase tracking-wider whitespace-nowrap"
               >
                 <Palette className="size-3 mr-2" /> Appearance
               </TabsTrigger>
               <TabsTrigger
                 value="database"
-                className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 text-zinc-500 px-3 py-1.5 text-xs uppercase tracking-wider"
+                className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 text-zinc-500 px-3 py-1.5 text-xs uppercase tracking-wider whitespace-nowrap"
               >
                 <Database className="size-3 mr-2" /> Database
               </TabsTrigger>
               <TabsTrigger
                 value="llm"
-                className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 text-zinc-500 px-3 py-1.5 text-xs uppercase tracking-wider"
+                className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 text-zinc-500 px-3 py-1.5 text-xs uppercase tracking-wider whitespace-nowrap"
               >
                 <Brain className="size-3 mr-2" /> LLM
               </TabsTrigger>
               <TabsTrigger
                 value="cards"
-                className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 text-zinc-500 px-3 py-1.5 text-xs uppercase tracking-wider"
+                className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 text-zinc-500 px-3 py-1.5 text-xs uppercase tracking-wider whitespace-nowrap"
               >
                 <Layout className="size-3 mr-2" /> Cards
               </TabsTrigger>
               <TabsTrigger
                 value="diagnostics"
-                className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 text-zinc-500 px-3 py-1.5 text-xs uppercase tracking-wider"
+                className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 text-zinc-500 px-3 py-1.5 text-xs uppercase tracking-wider whitespace-nowrap"
               >
                 <Activity className="size-3 mr-2" /> Diagnostics
+              </TabsTrigger>
+              <TabsTrigger
+                value="usage"
+                className="data-[state=active]:bg-zinc-800 data-[state=active]:text-zinc-100 text-zinc-500 px-3 py-1.5 text-xs uppercase tracking-wider whitespace-nowrap"
+              >
+                <Coins className="size-3 mr-2" /> Usage
               </TabsTrigger>
             </TabsList>
           </div>
@@ -159,9 +165,55 @@ export const GlobalSettings = () => {
             <TabsContent value="diagnostics" className="mt-0 outline-none">
               <SystemDiagnostics />
             </TabsContent>
+
+            <TabsContent value="usage" className="mt-0 outline-none">
+              <UsageStats />
+            </TabsContent>
           </ScrollArea>
         </Tabs>
       </SheetContent>
     </Sheet>
+  );
+};
+
+const UsageStats = () => {
+  const usage = useAppStore((state) => state.tokenUsage);
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h3 className="text-lg font-medium text-zinc-100">Token Consumption</h3>
+        <p className="text-sm text-zinc-500">Real-time tracking of AI interaction costs.</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="p-4 rounded-md border border-zinc-800 bg-zinc-900/50">
+          <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Input Tokens</p>
+          <p className="text-2xl font-bold text-zinc-100 font-mono">{usage.input.toLocaleString()}</p>
+        </div>
+        <div className="p-4 rounded-md border border-zinc-800 bg-zinc-900/50">
+          <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Output Tokens</p>
+          <p className="text-2xl font-bold text-zinc-100 font-mono">{usage.output.toLocaleString()}</p>
+        </div>
+        <div className="p-4 rounded-md border border-zinc-800 bg-zinc-900/50 col-span-2">
+          <div className="flex justify-between items-end">
+            <div>
+              <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Estimated Cost (USD)</p>
+              <p className="text-3xl font-bold text-blue-500 font-mono">${usage.estimatedCost.toFixed(4)}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Total Tokens</p>
+              <p className="text-xl font-medium text-zinc-400 font-mono">{usage.total.toLocaleString()}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4 rounded-md border border-yellow-500/10 bg-yellow-500/5">
+        <p className="text-xs text-yellow-500/80 leading-relaxed italic">
+          * Costs are estimated based on Claude 3.5 Opus pricing ($15/1M input, $75/1M output). Actual billing is handled by Anthropic.
+        </p>
+      </div>
+    </div>
   );
 };
