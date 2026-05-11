@@ -1,12 +1,17 @@
 import '@testing-library/jest-dom';
-import { TextEncoder, TextDecoder } from 'util';
+const { TextEncoder, TextDecoder } = require('node:util');
 
-// Mocking global objects that might be missing in the test environment
 global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder as any;
+global.TextDecoder = TextDecoder;
 
-// Mocking InfluxDB and other complex clients if needed globally
-// But we'll mostly do it per test.
+// Basic Response.json polyfill for older environments
+if (typeof Response !== 'undefined' && !Response.json) {
+  Response.json = (data, init) => {
+    const res = new Response(JSON.stringify(data), init);
+    res.headers.set('Content-Type', 'application/json');
+    return res;
+  };
+}
 
 // Add ResizeObserver mock for Recharts
 class ResizeObserver {

@@ -10,6 +10,7 @@ export interface DashboardCard {
   chartType: ChartType;
   timeRange: string; // e.g., '-1h', '-24h', '-7d'
   refreshInterval: number; // in seconds
+  fluxQuery?: string; // Optional custom query from AI
 }
 
 export interface DataSignature {
@@ -26,6 +27,7 @@ export interface DataSignature {
 export interface InsightResponse {
   insightText: string;
   suggestedChartType: ChartType;
+  fluxQuery: string;
   data: any[]; 
 }
 

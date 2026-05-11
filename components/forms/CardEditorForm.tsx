@@ -35,8 +35,10 @@ const formSchema = z.object({
   metricName: z.string().min(1, { message: 'Metric name is required.' }),
   chartType: z.enum(['line', 'step', 'badge', 'text'] as const),
   timeRange: z.string().min(1, { message: 'Time range is required.' }),
-  refreshInterval: z.coerce.number().min(5, { message: 'Interval must be at least 5s.' }),
+  refreshInterval: z.preprocess((val) => Number(val), z.number().min(5, { message: 'Interval must be at least 5s.' })),
 });
+
+type FormValues = z.infer<typeof formSchema>;
 
 interface CardEditorFormProps {
   card?: DashboardCard;
@@ -52,21 +54,21 @@ export const CardEditorForm = ({ card, onComplete }: CardEditorFormProps) => {
   const updateCard = useAppStore((state) => state.updateCard);
   const removeCard = useAppStore((state) => state.removeCard);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: card || {
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema) as any,
+    defaultValues: (card as FormValues) || {
       title: '',
       sourceType: 'sensor',
       metricCategory: 'temperature',
       host: 'home_assistant',
       metricName: '',
-      chartType: 'line',
+      chartType: 'line' as const,
       timeRange: '-1h',
       refreshInterval: 60,
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = (values: FormValues) => {
     if (card) {
       updateCard(card.id, values);
     } else {

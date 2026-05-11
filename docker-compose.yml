@@ -1,0 +1,22 @@
+services:
+  ham:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ham-app
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - ham-network
+
+networks:
+  ham-network:
+    driver: bridge

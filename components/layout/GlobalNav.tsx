@@ -11,9 +11,17 @@ import { siteConfig } from '@/config/site';
  * Global Navigation component.
  * Features the "ASK ON HOUSE" search bar and access to settings.
  */
-export const GlobalNav = () => {
+export const GlobalNav = ({ onSearch }: { onSearch?: (query: string) => void }) => {
   const toggleSettings = useAppStore((state) => state.toggleSettings);
   const isQuerying = useAppStore((state) => state.isQuerying);
+  const [query, setQuery] = React.useState('');
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && onSearch) {
+      onSearch(query);
+      setQuery('');
+    }
+  };
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md">
@@ -32,6 +40,9 @@ export const GlobalNav = () => {
               placeholder="ASK ON HOUSE (e.g., 'Show me power usage today')"
               className="w-full bg-zinc-900/50 border-zinc-800 pl-10 focus-visible:ring-1 focus-visible:ring-blue-500/50 h-10 text-zinc-200"
               disabled={isQuerying}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
             />
           </div>
         </div>

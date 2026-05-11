@@ -15,6 +15,7 @@ import { SystemDiagnostics } from '@/components/settings/SystemDiagnostics';
 import { CardEditorForm } from '@/components/forms/CardEditorForm';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Button } from '@/components/ui/button';
 
 /**
  * Global Settings component.
@@ -24,6 +25,7 @@ export const GlobalSettings = () => {
   const isOpen = useAppStore((state) => state.isSettingsOpen);
   const toggleSettings = useAppStore((state) => state.toggleSettings);
   const cards = useAppStore((state) => state.cards);
+  const removeCard = useAppStore((state) => state.removeCard);
 
   return (
     <Sheet open={isOpen} onOpenChange={toggleSettings}>
@@ -79,7 +81,6 @@ export const GlobalSettings = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium text-zinc-100">UI Preferences</h3>
                 <p className="text-sm text-zinc-500">Customize the visual density and theme.</p>
-                {/* Theme toggle would go here, currently forced dark */}
                 <div className="p-4 rounded-md border border-zinc-800 bg-zinc-900/50">
                   <span className="text-sm text-zinc-400">Current Theme: </span>
                   <span className="text-sm font-bold text-blue-500 uppercase">Dark (Forced)</span>
@@ -94,11 +95,11 @@ export const GlobalSettings = () => {
                 <div className="grid gap-3 p-4 rounded-md border border-zinc-800 bg-zinc-900/50">
                    <div className="flex justify-between text-xs">
                      <span className="text-zinc-500">ORG:</span>
-                     <span className="text-zinc-300 font-mono">{process.env.INFLUXDB_ORG || 'Adenda-Monitor'}</span>
+                     <span className="text-zinc-300 font-mono">{process.env.NEXT_PUBLIC_INFLUXDB_ORG || 'Adenda-Monitor'}</span>
                    </div>
                    <div className="flex justify-between text-xs">
                      <span className="text-zinc-500">BUCKET:</span>
-                     <span className="text-zinc-300 font-mono">{process.env.INFLUXDB_BUCKET || 'ha_pfd'}</span>
+                     <span className="text-zinc-300 font-mono">{process.env.NEXT_PUBLIC_INFLUXDB_BUCKET || 'ha_pfd'}</span>
                    </div>
                 </div>
               </div>
@@ -111,7 +112,7 @@ export const GlobalSettings = () => {
                 <div className="p-4 rounded-md border border-zinc-800 bg-zinc-900/50">
                   <div className="flex justify-between text-xs">
                     <span className="text-zinc-500">MODEL:</span>
-                    <span className="text-zinc-300 font-mono">{process.env.LLM_MODEL || 'claude-opus-4-7'}</span>
+                    <span className="text-zinc-300 font-mono">{process.env.NEXT_PUBLIC_LLM_MODEL || 'claude-opus-4-7'}</span>
                   </div>
                 </div>
               </div>
@@ -127,23 +128,30 @@ export const GlobalSettings = () => {
                 <CardEditorForm />
 
                 {cards.length > 0 && (
-                  <>
+                  <div className="space-y-4 mt-8">
                     <Separator className="bg-zinc-800" />
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium text-zinc-400">Existing Cards ({cards.length})</h4>
                       <div className="grid gap-2">
                         {cards.map((card) => (
-                          <div key={card.id} className="p-3 rounded-md bg-zinc-900 border border-zinc-800 flex justify-between items-center">
+                          <div key={card.id} className="p-3 rounded-md bg-zinc-900 border border-zinc-800 flex justify-between items-center group">
                             <div>
                               <p className="text-sm font-medium text-zinc-200">{card.title}</p>
                               <p className="text-xs text-zinc-500">{card.metricName} • {card.chartType}</p>
                             </div>
-                            <Button variant="ghost" size="sm" className="text-blue-500 hover:text-blue-400">Edit</Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-red-500 hover:text-red-400 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => removeCard(card.id)}
+                            >
+                              Delete
+                            </Button>
                           </div>
                         ))}
                       </div>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             </TabsContent>

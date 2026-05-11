@@ -41,6 +41,6 @@ describe('LLMService', () => {
     mockCreate.mockResolvedValueOnce({
       content: [{ type: 'text', text: 'invalid' }],
     });
-    await expect(llmService.processQuery('q', 'c')).rejects.toThrow('Invalid response from LLM.');
+    await expect(llmService.processQuery('q', 'c')).rejects.toThrow('AI engine failed to generate a valid response.');
   });
 });
