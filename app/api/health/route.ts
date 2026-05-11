@@ -22,6 +22,7 @@ export async function GET() {
     
     return NextResponse.json({
       status,
+      version: '1.1.0-debug',
       timestamp: new Date().toISOString(),
       services: {
         influxdb: isInfluxHealthy ? 'UP' : 'DOWN',
