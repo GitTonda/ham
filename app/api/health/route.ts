@@ -7,9 +7,15 @@ import { influxClient } from '@/lib/influx-client';
  */
 export async function GET() {
   try {
-    const isInfluxHealthy = await influxClient.ping();
+    let influxError = null;
+    let isInfluxHealthy = false;
     
-    // Anthropic SDK doesn't have a direct ping, but we've verified the API key in constructor
+    try {
+      isInfluxHealthy = await influxClient.ping();
+    } catch (e) {
+      influxError = e instanceof Error ? e.message : String(e);
+    }
+    
     const status = isInfluxHealthy ? 'healthy' : 'degraded';
     
     return NextResponse.json({
@@ -17,8 +23,9 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       services: {
         influxdb: isInfluxHealthy ? 'UP' : 'DOWN',
-        anthropic: 'OK', // Assuming OK if key is present; real check happens on query
+        anthropic: 'OK',
       },
+      debug: influxError ? { influx: influxError } : undefined,
     }, {
       status: isInfluxHealthy ? 200 : 503,
     });

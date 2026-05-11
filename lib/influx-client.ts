@@ -56,7 +56,7 @@ class InfluxClient {
       return true;
     } catch (error) {
       console.error('InfluxDB ping failed:', error);
-      return false;
+      throw error;
     }
   }
 }
