@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { influxClient } from '@/lib/influx-client';
 
+export const dynamic = 'force-dynamic';
+
 /**
  * Health check endpoint for system diagnostics.
  * Verifies connectivity to InfluxDB and returns overall status.

@@ -19,9 +19,13 @@ export async function POST(req: NextRequest) {
     // Provide context about the schema to the LLM
     const schemaContext = `
       Bucket: ${env.influx.bucket}
-      Measurements often include: 'sensor', 'state'
-      Fields often include: 'temperature', 'humidity', 'power', 'battery'
-      Standard tags: 'entity_id', 'friendly_name', 'domain'
+      Measurements: 'mqtt_consumer'
+      Fields: 'value' (often string-wrapped numbers or status strings)
+      Key Tags: 'topic', 'host'
+      Topic Structure examples:
+      - 'homeassistant/sensor/pi_hole_dns_queries_today/state'
+      - 'homeassistant/weather/forecast_casa/temperature'
+      - 'homeassistant/automation/accendi_freecooling/current'
     `;
 
     // 1. Get Flux Query and Insight from LLM

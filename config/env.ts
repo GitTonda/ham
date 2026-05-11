@@ -1,3 +1,6 @@
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 /**
  * Environment variables configuration and validation.
  * Ensures that the application has all necessary settings to run.
