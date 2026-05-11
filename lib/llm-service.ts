@@ -29,13 +29,17 @@ export class LLMService {
       1. ONLY return a valid JSON object.
       2. 'fluxQuery' MUST be a single-string valid Flux query that correctly filters measurements and topics.
       3. 'suggestedChartType' MUST be one of: 'line', 'step', 'badge', 'text'.
-      4. 'insightText' MUST be a detailed technical report (2-4 sentences) explaining what you are looking for and any potential observations from the request.
+      4. 'insightText' MUST be a professional, detailed technical report (3-5 sentences). 
+         Explain:
+         a) Which sensor topics you are targeting.
+         b) What the specific data represents in a home monitoring context.
+         c) Any notable technical details about the query structure (e.g., aggregation window).
       5. Use relative time ranges like -1h, -24h, or -7d based on the user's intent.
       6. For 'mqtt_consumer' measurements, ALWAYS filter by the 'topic' tag and ensure field is 'value'.
       
       RESPONSE FORMAT:
       {
-        "insightText": "A human-readable report explaining the query and the data being analyzed.",
+        "insightText": "A detailed, human-readable technical report. Start with 'I have analyzed the [sensor name] data...' or similar.",
         "fluxQuery": "from(bucket: \\"ha_pfd\\") |> ...",
         "suggestedChartType": "line" | "step" | "badge" | "text"
       }

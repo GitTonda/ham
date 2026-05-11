@@ -34,6 +34,7 @@ export default function Home() {
   const handleSearch = async (query: string) => {
     if (!query || isQuerying) return;
     
+    setInsight(null); // Clear previous insight for atomicity
     // Add user message
     addChatMessage({
       id: generateId(),

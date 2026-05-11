@@ -36,11 +36,17 @@ export const DashboardGrid = () => {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6 auto-rows-fr">
-      {cards.map((card) => (
-        <div key={card.id} className="min-h-[300px]">
-          <ChartCard card={card} />
-        </div>
-      ))}
+      {cards.map((card) => {
+        const colSpan = card.width === 2 ? 'sm:col-span-2' : 
+                        card.width === 3 ? 'lg:col-span-3 sm:col-span-2' : 
+                        card.width === 4 ? '2xl:col-span-4 lg:col-span-3 sm:col-span-2' : '';
+        
+        return (
+          <div key={card.id} className={`min-h-[300px] ${colSpan}`}>
+            <ChartCard card={card} />
+          </div>
+        );
+      })}
     </div>
   );
 };

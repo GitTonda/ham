@@ -53,6 +53,7 @@ const formSchema = z.object({
   chartType: z.enum(['line', 'step', 'badge', 'text'] as const),
   timeRange: z.string().min(1, { message: 'Time range is required.' }),
   refreshInterval: z.preprocess((val) => Number(val), z.number().min(5, { message: 'Interval must be at least 5s.' })),
+  width: z.preprocess((val) => Number(val), z.number().min(1).max(4).default(1)),
   color: z.string().optional(),
   showGrid: z.boolean().default(true),
   showPoints: z.boolean().default(false),
@@ -269,6 +270,30 @@ export const CardEditorForm = ({ card, onComplete }: CardEditorFormProps) => {
                 <FormControl>
                   <Input type="number" className="bg-zinc-900 border-zinc-800 h-10 text-xs font-mono font-bold text-blue-500" {...field} />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="width"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-zinc-400 text-[10px] uppercase font-black tracking-widest">Card Span</FormLabel>
+                <Select onValueChange={(val) => field.onChange(parseInt(val))} defaultValue={field.value.toString()}>
+                  <FormControl>
+                    <SelectTrigger className="bg-zinc-900 border-zinc-800 text-xs h-10 font-bold">
+                      <SelectValue placeholder="Size" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className="bg-zinc-950 border-zinc-800 text-zinc-300">
+                    <SelectItem value="1" className="text-[10px] font-black uppercase">Standard (1x)</SelectItem>
+                    <SelectItem value="2" className="text-[10px] font-black uppercase">Wide (2x)</SelectItem>
+                    <SelectItem value="3" className="text-[10px] font-black uppercase">Large (3x)</SelectItem>
+                    <SelectItem value="4" className="text-[10px] font-black uppercase">Full (4x)</SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
