@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { influxClient } from '@/lib/influx-client';
+import { env } from '@/config/env';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,13 +23,16 @@ export async function GET() {
     
     return NextResponse.json({
       status,
-      version: '1.1.0-debug',
+      version: '1.2.0-url-debug',
       timestamp: new Date().toISOString(),
       services: {
         influxdb: isInfluxHealthy ? 'UP' : 'DOWN',
         anthropic: 'OK',
       },
-      debug: influxError ? { influx: influxError } : undefined,
+      debug: {
+        influx_url: env.influx.url,
+        influx_error: influxError || (isInfluxHealthy ? null : 'Unknown failure (ping returned false without error)'),
+      },
     }, {
       status: isInfluxHealthy ? 200 : 503,
     });
