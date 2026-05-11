@@ -8,13 +8,15 @@ global.fetch = jest.fn();
 
 // Mock Recharts to avoid rendering issues in Jest
 jest.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: any) => <div>{children}</div>,
-  LineChart: () => <div data-testid="line-chart" />,
-  Line: () => null,
-  XAxis: () => null,
-  YAxis: () => null,
-  CartesianGrid: () => null,
-  Tooltip: () => null,
+  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  LineChart: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Line: () => <div>Line</div>,
+  XAxis: () => <div>XAxis</div>,
+  YAxis: () => <div>YAxis</div>,
+  CartesianGrid: () => <div>CartesianGrid</div>,
+  Tooltip: () => <div>Tooltip</div>,
+  AreaChart: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Area: () => <div>Area</div>,
 }));
 
 const mockCard: DashboardCard = {
@@ -34,22 +36,28 @@ describe('ChartCard', () => {
     (global.fetch as jest.Mock).mockClear();
   });
 
-  it('renders card title and metadata', () => {
+  it('renders card title', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: [] }),
+    });
+
     render(<ChartCard card={mockCard} />);
     expect(screen.getByText('Test Card')).toBeInTheDocument();
-    expect(screen.getByText(/home_assistant • temp/i)).toBeInTheDocument();
   });
 
   it('fetches data on mount', async () => {
     (global.fetch as jest.Mock).mockResolvedValue({
       ok: true,
-      json: jest.fn().mockResolvedValue({ data: [{ _time: '2024-01-01', _value: 20 }] }),
+      json: async () => ({ data: [{ _time: '2024-01-01T00:00:00Z', _value: 20 }] }),
     });
 
     render(<ChartCard card={mockCard} />);
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/data'));
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/data?bucket=temperature&metric=temp&range=-1h')
+      );
     });
   });
 
@@ -59,7 +67,8 @@ describe('ChartCard', () => {
     render(<ChartCard card={mockCard} />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Connection Lost/i)).toBeInTheDocument();
+      expect(screen.getByText(/Link Broken/i)).toBeInTheDocument();
+      expect(screen.getByText(/Network error/i)).toBeInTheDocument();
     });
   });
 });

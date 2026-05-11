@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Plus, Save, Trash2, Search, RefreshCw } from 'lucide-react';
+import { Plus, Save, Trash2, Search, RefreshCw, Palette, Grid3X3, CircleDot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -23,10 +23,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { useAppStore } from '@/store/useAppStore';
 import { DashboardCard, ChartType } from '@/types';
 import { CONSTANTS } from '@/config/constants';
-import { Combobox } from '@/components/ui/combobox'; // Assuming we have one or will create a simple one
+import { generateId } from '@/lib/utils';
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -52,6 +53,9 @@ const formSchema = z.object({
   chartType: z.enum(['line', 'step', 'badge', 'text'] as const),
   timeRange: z.string().min(1, { message: 'Time range is required.' }),
   refreshInterval: z.preprocess((val) => Number(val), z.number().min(5, { message: 'Interval must be at least 5s.' })),
+  color: z.string().optional(),
+  showGrid: z.boolean().default(true),
+  showPoints: z.boolean().default(false),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -63,7 +67,7 @@ interface CardEditorFormProps {
 
 /**
  * Card Editor Form component.
- * Features a full sensor picker connected to InfluxDB.
+ * Features a full sensor picker and expanded visualization settings.
  */
 export const CardEditorForm = ({ card, onComplete }: CardEditorFormProps) => {
   const addCard = useAppStore((state) => state.addCard);
@@ -92,7 +96,7 @@ export const CardEditorForm = ({ card, onComplete }: CardEditorFormProps) => {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema) as any,
-    defaultValues: (card as FormValues) || {
+    defaultValues: (card as any) || {
       title: '',
       sourceType: 'sensor',
       metricCategory: 'ha_pfd',
@@ -101,14 +105,13 @@ export const CardEditorForm = ({ card, onComplete }: CardEditorFormProps) => {
       chartType: 'line' as const,
       timeRange: '-1h',
       refreshInterval: 60,
+      color: '#3b82f6',
+      showGrid: true,
+      showPoints: false,
     },
   });
 
   const onSubmit = (values: FormValues) => {
-    const generateId = () => typeof crypto.randomUUID === 'function' 
-      ? crypto.randomUUID() 
-      : Math.random().toString(36).substring(2, 11);
-
     if (card) {
       updateCard(card.id, values);
     } else {
@@ -123,16 +126,16 @@ export const CardEditorForm = ({ card, onComplete }: CardEditorFormProps) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="space-y-4">
           <FormField
             control={form.control}
             name="title"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-zinc-400">Display Name</FormLabel>
+                <FormLabel className="text-zinc-400 text-[10px] uppercase font-black tracking-widest">Display Identifier</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Living Room Temperature" className="bg-zinc-900 border-zinc-800" {...field} />
+                  <Input placeholder="e.g., Load Balancer Output" className="bg-zinc-900 border-zinc-800 h-10 font-bold" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -144,33 +147,33 @@ export const CardEditorForm = ({ card, onComplete }: CardEditorFormProps) => {
             name="metricName"
             render={({ field }) => (
               <FormItem className="flex flex-col">
-                <FormLabel className="text-zinc-400 text-xs uppercase tracking-wider font-bold">Select Sensor (from InfluxDB)</FormLabel>
+                <FormLabel className="text-zinc-400 text-[10px] uppercase font-black tracking-widest">InfluxDB Data Point (Topic)</FormLabel>
                 <Popover open={open} onOpenChange={setOpen}>
-                  <PopoverTrigger>
+                  <PopoverTrigger asChild>
                     <FormControl>
                       <button
                         type="button"
                         role="combobox"
                         aria-expanded={open}
                         className={cn(
-                          "w-full flex items-center justify-between rounded-lg border bg-clip-padding font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 gap-1.5 px-2.5 h-10 bg-zinc-900 border-zinc-800 font-mono text-xs text-zinc-300",
+                          "w-full flex items-center justify-between rounded-lg border bg-clip-padding font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 h-10 px-3 bg-zinc-900 border-zinc-800 font-mono text-xs text-zinc-300",
                           !field.value && "text-zinc-500"
                         )}
                       >
                         <span className="truncate">
                           {field.value
                             ? sensors.find((s) => s === field.value) || field.value
-                            : "Search sensors..."}
+                            : "Search telemetry streams..."}
                         </span>
                         {loadingSensors ? <RefreshCw className="ml-2 h-4 w-4 shrink-0 animate-spin" /> : <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />}
                       </button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-zinc-950 border-zinc-800">
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0 bg-zinc-950 border-zinc-800 shadow-2xl">
                     <Command className="bg-transparent">
-                      <CommandInput placeholder="Search sensors..." className="h-9 text-zinc-300" />
-                      <CommandList>
-                        <CommandEmpty>No sensor found.</CommandEmpty>
+                      <CommandInput placeholder="Filter sensors..." className="h-10 text-zinc-300" />
+                      <CommandList className="max-h-[300px]">
+                        <CommandEmpty>No telemetry stream found.</CommandEmpty>
                         <CommandGroup>
                           {sensors.map((sensor) => (
                             <CommandItem
@@ -179,17 +182,16 @@ export const CardEditorForm = ({ card, onComplete }: CardEditorFormProps) => {
                               onSelect={() => {
                                 form.setValue("metricName", sensor);
                                 if (!form.getValues("title")) {
-                                  // Auto-generate title from topic if empty
                                   const parts = sensor.split('/');
-                                  form.setValue("title", parts[parts.length - 2]?.replace(/_/g, ' ') || sensor);
+                                  form.setValue("title", parts[parts.length - 2]?.replace(/_/g, ' ').toUpperCase() || sensor);
                                 }
                                 setOpen(false);
                               }}
-                              className="text-xs font-mono text-zinc-400 hover:text-zinc-100"
+                              className="text-[10px] font-mono text-zinc-500 hover:text-zinc-100 cursor-pointer"
                             >
                               <Check
                                 className={cn(
-                                  "mr-2 h-4 w-4",
+                                  "mr-2 h-3 w-3",
                                   sensor === field.value ? "opacity-100" : "opacity-0"
                                 )}
                               />
@@ -201,31 +203,28 @@ export const CardEditorForm = ({ card, onComplete }: CardEditorFormProps) => {
                     </Command>
                   </PopoverContent>
                 </Popover>
-                <FormDescription className="text-[10px] text-zinc-600">
-                  Pick a topic from your MQTT consumer bucket.
-                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <FormField
             control={form.control}
             name="chartType"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-zinc-400 text-xs uppercase tracking-wider font-bold">Visualization</FormLabel>
+                <FormLabel className="text-zinc-400 text-[10px] uppercase font-black tracking-widest">Visualization</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger className="bg-zinc-900 border-zinc-800 text-xs h-10">
-                      <SelectValue placeholder="Select type" />
+                    <SelectTrigger className="bg-zinc-900 border-zinc-800 text-xs h-10 font-bold">
+                      <SelectValue placeholder="Format" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent className="bg-zinc-950 border-zinc-800 text-zinc-300">
                     {CONSTANTS.CHART_TYPES.map((type) => (
-                      <SelectItem key={type.value} value={type.value} className="text-xs uppercase">
+                      <SelectItem key={type.value} value={type.value} className="text-[10px] uppercase font-black">
                         {type.label}
                       </SelectItem>
                     ))}
@@ -241,16 +240,16 @@ export const CardEditorForm = ({ card, onComplete }: CardEditorFormProps) => {
             name="timeRange"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-zinc-400 text-xs uppercase tracking-wider font-bold">Range</FormLabel>
+                <FormLabel className="text-zinc-400 text-[10px] uppercase font-black tracking-widest">Time Window</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger className="bg-zinc-900 border-zinc-800 text-xs h-10">
-                      <SelectValue placeholder="Select range" />
+                    <SelectTrigger className="bg-zinc-900 border-zinc-800 text-xs h-10 font-bold">
+                      <SelectValue placeholder="Range" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent className="bg-zinc-950 border-zinc-800 text-zinc-300">
                     {CONSTANTS.TIME_RANGES.map((range) => (
-                      <SelectItem key={range.value} value={range.value} className="text-xs">
+                      <SelectItem key={range.value} value={range.value} className="text-[10px] font-black uppercase">
                         {range.label}
                       </SelectItem>
                     ))}
@@ -266,9 +265,9 @@ export const CardEditorForm = ({ card, onComplete }: CardEditorFormProps) => {
             name="refreshInterval"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-zinc-400 text-xs uppercase tracking-wider font-bold">Rate (s)</FormLabel>
+                <FormLabel className="text-zinc-400 text-[10px] uppercase font-black tracking-widest">Poling Rate (s)</FormLabel>
                 <FormControl>
-                  <Input type="number" className="bg-zinc-900 border-zinc-800 h-10 text-xs font-mono" {...field} />
+                  <Input type="number" className="bg-zinc-900 border-zinc-800 h-10 text-xs font-mono font-bold text-blue-500" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -276,7 +275,73 @@ export const CardEditorForm = ({ card, onComplete }: CardEditorFormProps) => {
           />
         </div>
 
-        <div className="flex items-center justify-between pt-6 border-t border-zinc-900">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-6 border-y border-zinc-900">
+           <div className="space-y-4">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+                <Palette className="size-3" /> Appearance Options
+              </h4>
+              
+              <FormField
+                control={form.control}
+                name="color"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between space-y-0 rounded-lg border border-zinc-900 p-3 bg-zinc-900/20">
+                    <FormLabel className="text-xs font-bold text-zinc-400">Accent Color</FormLabel>
+                    <FormControl>
+                      <div className="flex items-center gap-2">
+                         <div className="size-4 rounded-full" style={{ backgroundColor: field.value }} />
+                         <Input type="text" className="h-8 w-24 text-[10px] font-mono bg-zinc-950 border-zinc-800" {...field} />
+                      </div>
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+           </div>
+
+           <div className="space-y-4">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-500 flex items-center gap-2">
+                <Grid3X3 className="size-3" /> Grid Settings
+              </h4>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="showGrid"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-zinc-900 p-3 bg-zinc-900/20">
+                      <FormLabel className="text-[10px] font-bold text-zinc-400 uppercase">Show Grid</FormLabel>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="scale-75"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="showPoints"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border border-zinc-900 p-3 bg-zinc-900/20">
+                      <FormLabel className="text-[10px] font-bold text-zinc-400 uppercase">Points</FormLabel>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          className="scale-75"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
+           </div>
+        </div>
+
+        <div className="flex items-center justify-between pt-2">
           {card && (
             <Button
               type="button"
@@ -286,14 +351,14 @@ export const CardEditorForm = ({ card, onComplete }: CardEditorFormProps) => {
                 removeCard(card.id);
                 if (onComplete) onComplete();
               }}
-              className="bg-red-500/10 text-red-500 hover:bg-red-500/20 border-red-500/20 text-[10px] uppercase font-bold"
+              className="bg-red-500/5 text-red-500 hover:bg-red-500/10 border border-red-500/10 text-[10px] font-black uppercase tracking-widest px-4"
             >
-              <Trash2 className="size-3 mr-2" /> Remove Card
+              <Trash2 className="size-3 mr-2" /> Decommission
             </Button>
           )}
           <div className="flex-1" />
-          <Button type="submit" size="sm" className="bg-blue-600 hover:bg-blue-500 text-white text-[10px] uppercase font-bold px-4">
-            <Save className="size-3 mr-2" /> {card ? 'Save Changes' : 'Create Monitor'}
+          <Button type="submit" size="sm" className="bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase tracking-widest px-8 h-10 shadow-lg shadow-blue-900/20">
+            <Save className="size-3 mr-2" /> {card ? 'Push Configuration' : 'Initialize Monitor'}
           </Button>
         </div>
       </form>

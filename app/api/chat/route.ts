@@ -16,16 +16,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Query is required' }, { status: 400 });
     }
 
-    // Provide context about the schema to the LLM
+    // Provide rich context about the schema to the LLM
     const schemaContext = `
       Bucket: ${env.influx.bucket}
-      Measurements: 'mqtt_consumer'
-      Fields: 'value' (often string-wrapped numbers or status strings)
-      Key Tags: 'topic', 'host'
-      Topic Structure examples:
-      - 'homeassistant/sensor/pi_hole_dns_queries_today/state'
-      - 'homeassistant/weather/forecast_casa/temperature'
-      - 'homeassistant/automation/accendi_freecooling/current'
+      Primary Measurement: 'mqtt_consumer'
+      Primary Tag: 'topic' (contains the Home Assistant entity path)
+      Primary Field: 'value' (numeric strings or status strings)
+      
+      Topic Structure Guidelines:
+      - Sensors: 'homeassistant/sensor/[entity_name]/state'
+      - Weather: 'homeassistant/weather/[location]/[attribute]'
+      - Automation: 'homeassistant/automation/[name]/current'
+      
+      When generating Flux:
+      - Always use range(start: [requested_range])
+      - Filter by measurement 'mqtt_consumer'
+      - Filter by topic tag using regex or exact match
+      - Filter by field 'value'
+      - If user asks for temperature, look for topics containing 'temperature' or 'temp'.
     `;
 
     // 1. Get Flux Query and Insight from LLM

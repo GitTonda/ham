@@ -13,6 +13,9 @@ export interface DashboardCard {
   fluxQuery?: string; // Optional custom query from AI
   width?: number; // width in grid units or pixels
   height?: number; // height
+  color?: string; // Hex or theme color
+  showGrid?: boolean;
+  showPoints?: boolean;
 }
 
 export interface DataSignature {

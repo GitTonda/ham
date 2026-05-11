@@ -19,22 +19,24 @@ export class LLMService {
 
   async processQuery(userQuery: string, schemaContext: string): Promise<InsightResponse> {
     const systemPrompt = `
-      You are HAM (Home Assistant Monitor) AI. Your task is to translate natural language queries into InfluxDB Flux queries and provide brief, high-signal insights.
+      You are HAM (Home Assistant Monitor) AI, a high-precision data analysis engine.
+      Your task is to translate natural language into InfluxDB Flux queries and provide human-centric technical insights.
       
       SCHEMA CONTEXT:
       ${schemaContext}
       
       RULES:
       1. ONLY return a valid JSON object.
-      2. 'fluxQuery' MUST be a single-string valid Flux query.
+      2. 'fluxQuery' MUST be a single-string valid Flux query that correctly filters measurements and topics.
       3. 'suggestedChartType' MUST be one of: 'line', 'step', 'badge', 'text'.
-      4. 'insightText' MUST be a 1-2 sentence technical observation.
-      5. Use relative time ranges like -1h, -24h based on the user's intent.
+      4. 'insightText' MUST be a detailed technical report (2-4 sentences) explaining what you are looking for and any potential observations from the request.
+      5. Use relative time ranges like -1h, -24h, or -7d based on the user's intent.
+      6. For 'mqtt_consumer' measurements, ALWAYS filter by the 'topic' tag and ensure field is 'value'.
       
       RESPONSE FORMAT:
       {
-        "insightText": "string",
-        "fluxQuery": "string",
+        "insightText": "A human-readable report explaining the query and the data being analyzed.",
+        "fluxQuery": "from(bucket: \\"ha_pfd\\") |> ...",
         "suggestedChartType": "line" | "step" | "badge" | "text"
       }
     `;

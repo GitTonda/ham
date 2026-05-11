@@ -10,18 +10,10 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { InsightResponse, ChartType } from '@/types';
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
-} from 'recharts';
-import { Brain, Plus, X } from 'lucide-react';
+import { Plus, X, BarChart3, Info } from 'lucide-react';
+import { InsightResponse } from '@/types';
 import { useAppStore } from '@/store/useAppStore';
+import { generateId } from '@/lib/utils';
 
 interface QueryInsightOverlayProps {
   isOpen: boolean;
@@ -45,12 +37,8 @@ export const QueryInsightOverlay = ({
   if (!insight) return null;
 
   const handleAddCard = () => {
-    const id = typeof crypto.randomUUID === 'function' 
-      ? crypto.randomUUID() 
-      : Math.random().toString(36).substring(2, 11);
-
     addCard({
-      id,
+      id: generateId(),
       title: query,
       sourceType: 'ai_query',
       metricCategory: 'ai',
@@ -66,43 +54,42 @@ export const QueryInsightOverlay = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl bg-zinc-950 border-zinc-800">
+      <DialogContent className="sm:max-w-2xl bg-zinc-950 border-zinc-800 text-zinc-300">
         <DialogHeader>
-          <div className="flex items-center gap-2 mb-2">
-            <Brain className="size-5 text-purple-500" />
-            <DialogTitle className="text-zinc-100 italic">" {query} "</DialogTitle>
+          <div className="flex items-center gap-2 text-blue-500 mb-2">
+            <BarChart3 className="size-5" />
+            <span className="text-[10px] font-black uppercase tracking-widest">Analysis Result</span>
           </div>
-          <DialogDescription className="text-zinc-400 text-base">
+          <DialogTitle className="text-2xl font-black tracking-tighter text-zinc-100">
+            {query}
+          </DialogTitle>
+          <DialogDescription className="text-zinc-500 mt-2 leading-relaxed">
             {insight.insightText}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="h-64 w-full mt-4 p-4 bg-zinc-900/30 border border-zinc-800 rounded-md">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={insight.data}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#27272a" />
-              <XAxis dataKey="_time" hide />
-              <YAxis hide domain={['auto', 'auto']} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#18181b', border: '1px solid #27272a' }}
-                itemStyle={{ color: '#3b82f6' }}
-              />
-              <Line 
-                type="monotone" 
-                dataKey="_value" 
-                stroke="#8b5cf6" 
-                dot={false} 
-                strokeWidth={2}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="mt-6 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800 flex flex-col gap-4">
+          <div className="flex items-center gap-2 text-zinc-400">
+            <Info className="size-4" />
+            <span className="text-xs font-bold uppercase tracking-wider">Suggested Configuration</span>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] text-zinc-600 uppercase font-black">Chart Type</span>
+              <span className="text-sm font-mono text-zinc-300 uppercase">{insight.suggestedChartType}</span>
+            </div>
+            <div className="flex flex-col gap-1 text-right">
+              <span className="text-[10px] text-zinc-600 uppercase font-black">Data Source</span>
+              <span className="text-sm font-mono text-zinc-300">InfluxDB (Flux)</span>
+            </div>
+          </div>
         </div>
 
-        <DialogFooter className="mt-6">
-          <Button variant="ghost" onClick={onClose} className="text-zinc-400">
+        <DialogFooter className="mt-8 flex gap-3 sm:justify-end">
+          <Button variant="ghost" onClick={onClose} className="text-zinc-500 hover:text-zinc-300">
             Dismiss
           </Button>
-          <Button onClick={handleAddCard} className="bg-purple-600 hover:bg-purple-500 text-white">
+          <Button onClick={handleAddCard} className="bg-blue-600 hover:bg-blue-500 text-white font-black text-[10px] uppercase tracking-wider px-6 h-10">
             <Plus className="size-4 mr-2" /> Pin to Dashboard
           </Button>
         </DialogFooter>
