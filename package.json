@@ -80,6 +80,8 @@
     "whatwg-fetch": "^3.6.20"
   },
   "overrides": {
-    "eslint": "^9.16.0"
+    "eslint": "^9.16.0",
+    "react": "$react",
+    "react-dom": "$react-dom"
   }
 }
