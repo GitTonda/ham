@@ -72,9 +72,13 @@ export const CardEditorForm = ({ card, onComplete }: CardEditorFormProps) => {
     if (card) {
       updateCard(card.id, values);
     } else {
+      const id = typeof crypto.randomUUID === 'function' 
+        ? crypto.randomUUID() 
+        : Math.random().toString(36).substring(2, 11);
+        
       addCard({
         ...values,
-        id: crypto.randomUUID(),
+        id,
       });
     }
     form.reset();

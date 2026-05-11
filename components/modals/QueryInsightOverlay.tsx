@@ -45,8 +45,12 @@ export const QueryInsightOverlay = ({
   if (!insight) return null;
 
   const handleAddCard = () => {
+    const id = typeof crypto.randomUUID === 'function' 
+      ? crypto.randomUUID() 
+      : Math.random().toString(36).substring(2, 11);
+
     addCard({
-      id: crypto.randomUUID(),
+      id,
       title: query,
       sourceType: 'ai_query',
       metricCategory: 'ai',
