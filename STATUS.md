@@ -9,10 +9,12 @@
 - [x] Generate documentation (`README.md`, `docs/ARCHITECTURE.md`)
 - [x] Run tests and verify
 
-## Phase 2: Backend Logic & Rigorous Unit Testing
-- [ ] Implement Influx client, Data Summarizer, LLM Service
-- [ ] Implement Health API
-- [ ] Unit Tests for Backend Logic
+## Phase 2: Backend Logic & Rigorous Unit Testing [IN PROGRESS]
+- [ ] Implement `lib/influx-client.ts`
+- [ ] Implement `lib/data-summarizer.ts`
+- [ ] Implement `lib/llm-service.ts` (using `claude-opus-4-7`)
+- [ ] Implement `/api/health/route.ts`
+- [ ] Unit Tests for Backend Logic (Influx, Summarizer, LLM)
 
 ## Blockers
 None
